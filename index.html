@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="textArea" contenteditable ref="inputTextArea"></div>
+        <div class="button" id="transform" @click="transform()">转换</div>
+        <div class="textArea">{{ output }}</div>
+    </div>
+</body>
+
+<script>
+    console.clear()
+    const { createApp, ref } = Vue
+    const App = createApp({
+        setup() {
+            const input = ref("");
+            const output = ref("");
+            const inputTextArea = ref()
+
+            const transform = () => {
+                input.value = inputTextArea.value.innerText
+                try {
+                    output.value = decodeURIComponent(atob(input.value).split('').map((c) => {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''))
+                } catch (err) {
+                    output.value = "Base64 解码出现错误\n" + err.message
+                }
+            }
+
+            return { input, output, inputTextArea, transform }
+        }
+    })
+    App.mount('#app')
+
+</script>
+
+<style>
+    body {
+        height: 100vh;
+        margin: auto 20vmin;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    #app {
+        gap: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .textArea,
+    .button {
+        outline: unset;
+        background: #fff1;
+        border: none;
+        border-radius: 10px;
+    }
+
+    .button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+    .button:hover {
+        background: #fff2;
+    }
+
+    .textArea {
+        white-space: pre-wrap;
+        min-width: calc(100% - 40px);
+        max-width: calc(100% - 40px);
+        min-height: 21px;
+        padding: 20px;
+        max-height: 30vh;
+        overflow-y: scroll;
+    }
+</style>
+
+</html>

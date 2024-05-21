@@ -11,7 +11,9 @@
 
 <body>
     <div id="app">
-        <div class="textArea" contenteditable ref="inputTextArea"></div>
+        <div class="textArea" contenteditable ref="inputTextArea">
+            77u/DQrmlrDnlJ8NCuW/g+W9ouaeqg0K5oub6ZuGL+aWsOS6uuaLm+mbhg0KMjAyNOW5tDTmnIgyNeaXpTEx5pe2MjTliIYNCg0K5paw55SfDQrpuabpuYnpk7bnvZANCuaLm+mbhi/mlrDkurrmi5vpm4YNCjIwMjTlubQ05pyIMjXml6UxMeaXtjI05YiGDQoNCuaWsOeUnw0K5Lq65aS055O2DQrmi5vpm4Yv5paw5Lq65oub6ZuGDQoyMDI05bm0NOaciDI15pelMTHml7YyNOWIhg0KDQrmlrDnlJ8NCum+mee6uemZtuebmA0K5oub6ZuGL+aWsOS6uuaLm+mbhg0KMjAyNOW5tDTmnIgyNeaXpTEx5pe2MjTliIYNCg0K5paw55SfDQrlhrfmmpboh6rlpoLljbANCuaLm+mbhi/mlrDkurrmi5vpm4YNCjIwMjTlubQ05pyIMjXml6UxMeaXtjI05YiGDQoNCuaWsOeUnw0K55m96YeJ57u/5b2p55O2DQrmi5vpm4Yv5paw5Lq65oub6ZuGDQoyMDI05bm0NOaciDI15pelMTHml7YyNOWIhg0KDQrmlrDnlJ8NCuiSmeWMu+iNr+iiiw0K5oub6ZuGL+aWsOS6uuaLm+mbhg0KMjAyNOW5tDTmnIgyNeaXpTEx5pe2MjTliIYNCg0K54m55Ye6DQrkupHpm7fnurnlpKfpk5kNCuaLm+mbhi/mlrDkurrmi5vpm4YNCjIwMjTlubQ05pyIMjXml6UxMeaXtjI05YiGDQoNCuaWsOeUnw0K5aSp5rCU5Y2c6aqoDQrmi5vpm4Yv5paw5Lq65oub6ZuGDQoyMDI05bm0NOaciDI15pelMTHml7YyNOWIhg0KDQrmlrDnlJ8NCuW/g+W9ouaeqg0K5oub6ZuGL+aWsOS6uuaLm+mbhg0KMjAyNOW5tDTmnIgyNeaXpTEx5pe2MjTliIYNCg0K5paw55SfDQrnjpvpm4XpmbbnopcNCuaLm+mbhi/mlrDkurrmi5vpm4YNCjIwMjTlubQ05pyIMjXml6Uw5pe2MzDliIYNCg0K5LyY5byCDQrlpKnok53nk7YNCuaLm+mbhi/mlrDkurrmi5vpm4YNCjIwMjTlubQ05pyIMjXml6Uw5pe2MjnliIYNCg0K5paw55SfDQrokpnljLvoja/ooosNCuaLm+mbhi/mlrDkurrmi5vpm4YNCjIwMjTlubQ05pyIMjXml6Uw5pe2MjnliIYNCg0K5LyY5byCDQrmoLzokKjlsJTllJDljaENCuaLm+mbhi/mlrDkurrmi5vpm4YNCjIwMjTlubQ05pyIMjXml6Uw5pe2MjnliIYNCg0K5paw55SfDQrokpnljLvoja/ooosNCuaLm+mbhi/mlrDkurrmi5vpm4YNCjIwMjTlubQ05pyIMjXml6Uw5pe2N+WIhg0KDQrmlrDnlJ8NCuaenOagkeWPjOeuoeeTtg0K5oub6ZuGL+aWsOS6uuaLm+mbhg0KMjAyNOW5tDTmnIgyNeaXpTDml7Y25YiGDQoNCuaWsOeUnw0K6bmm6bmJ6ZO2572QDQrmi5vpm4Yv5paw5Lq65oub6ZuGDQoyMDI05bm0NOaciDI15pelMOaXtjXliIYNCg0K5paw55SfDQrkurrlpLTnk7YNCuaLm+mbhi/mlrDkurrmi5vpm4YNCjIwMjTlubQ05pyIMjTml6UyMOaXtjM35YiGDQoNCuaWsOeUnw0K5b+D5b2i5p6qDQrmi5vpm4Yv5paw5Lq65oub6ZuGDQoyMDI05bm0NOaciDI05pelMjDml7YxM+WIhg0KDQoNCg0KDQoNCg0K
+        </div>
         <div class="button" id="transform" @click="transform()">转换</div>
         <div class="textArea">{{ output }}</div>
     </div>
@@ -28,13 +30,59 @@
 
             const transform = () => {
                 input.value = inputTextArea.value.innerText
-                try {
-                    output.value = decodeURIComponent(atob(input.value).split('').map((c) => {
-                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                    }).join(''))
-                } catch (err) {
-                    output.value = "Base64 解码出现错误\n" + err.message
+                let isBase64 = true
+                const keywords = ["特出", "优异", "新生"];
+                for (let keyword of keywords) {
+                    if (input.value.includes(keyword)) {
+                        isBase64 = false
+                        break
+                    }
                 }
+
+                if (isBase64) {
+                    try {
+                        output.value = decodeURIComponent(atob(input.value).split('').map((c) => {
+                            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                        }).join(''))
+                    } catch (err) {
+                        output.value = "Base64 解码出现错误\n" + err.message
+                    }
+                } else {
+                    output.value = inputTextArea.value.innerText
+                }
+
+                console.log([output.value])
+
+                const records = [];
+                const lines = output.value.replace(/^\s+|\s+$/g, '').split('\r\n\r\n');
+
+                lines.forEach(block => {
+                    const linesInBlock = block.split('\r\n').map(line => line.trim());
+
+                    let rarity = null, item = null, recruitment = null, date = null;
+
+                    linesInBlock.forEach(line => {
+                        if (!rarity && (line === '特出' || line === '优异' || line === '新生')) {
+                            rarity = line;
+                        } else if (!item && !line.match(/(\d{4})年(\d{1,2})月(\d{1,2})日(\d{1,2})时(\d{1,2})分/)) {
+                            item = line;
+                        } else if (!recruitment && !line.match(/(\d{4})年(\d{1,2})月(\d{1,2})日(\d{1,2})时(\d{1,2})分/)) {
+                            recruitment = line;
+                        } else if (!date) {
+                            const timeMatch = line.match(/(\d{4})年(\d{1,2})月(\d{1,2})日(\d{1,2})时(\d{1,2})分/);
+                            if (timeMatch) {
+                                const [, year, month, day, hour, minute] = timeMatch;
+                                date = new Date(year, month - 1, day, hour, minute);
+                            }
+                        }
+                    });
+
+                    records.push({ rarity, item, recruitment, time: date });
+                });
+
+
+                output.value = records
+                console.log(records)
             }
 
             return { input, output, inputTextArea, transform }
@@ -46,11 +94,11 @@
 
 <style>
     body {
-        height: 100vh;
-        margin: auto 20vmin;
+        height: 80vh;
+        margin: 0;
+        padding: 10vmin;
         display: flex;
         flex-direction: column;
-        justify-content: center;
     }
 
     #app {

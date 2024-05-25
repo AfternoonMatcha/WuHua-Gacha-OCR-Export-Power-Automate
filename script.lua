@@ -1,4 +1,4 @@
-Display.ShowMessageDialog.ShowMessage Title: $fx'物华抽卡记录导出自动化 OCR' Message: $fx'Matce. 240520-01
+Display.ShowMessageDialog.ShowMessage Title: $fx'物华抽卡记录导出自动化 OCR' Message: $fx'Matce. 0.2.0.240525
 ① 运行前请先确保游戏窗口招集记录页面在单个屏幕内【完全可见】
 ② 运行中请【不要移动、缩放、开关】游戏窗口直至获取完毕
 ③ 请务必从招集记录的【第一页】开始，否则程序会重复读取多次最后一页
@@ -36,7 +36,7 @@ IF $fx'=总页数 = "
         SET 是否自动聚焦到窗口 TO $fx'No'
     END
 END
-SET 总记录 TO $fx'='
+SET 总记录 TO $fx'="["'
 SET 行高 TO $fx'=(下 - 上) / 10'
 LOOP 任务页码 FROM $fx'=1' TO $fx'=Value(总页数)' STEP $fx'=1'
     LOOP 任务行 FROM $fx'=1' TO $fx'=10' STEP $fx'=1'
@@ -47,12 +47,40 @@ LOOP 任务页码 FROM $fx'=1' TO $fx'=Value(总页数)' STEP $fx'=1'
         IF $fx'=!(Len(稀有度) <= 3 && Len(器者) <= 3 && Len(招集) <= 3 && Len(时间) <= 3) && (Len(稀有度) <= 3 || Len(器者) <= 3 || Len(招集) <= 3 || Len(时间) <= 3)' THEN
             Variables.IncreaseVariable Value: $fx'=识别单元格为空计数' IncrementValue: $fx'1'
         END
-        Text.AppendLine Text: $fx'=总记录' LineToAppend: $fx'=Concatenate(Substitute(稀有度, " ",""), Substitute(器者, " ",""), Substitute(招集, " ",""), Substitute(时间, " ",""))' Result=> 总记录
+        SET 单条记录 TO $fx'=Concatenate(
+"{", 
+
+"""rarity"":""", Substitute(Substitute(稀有度, "
+","")," ",""), 
+""",",
+
+"""banner"":""", Substitute(Substitute(招集, "
+","")," ",""), 
+""",",
+
+"""item"":""", Substitute(Substitute(器者, "
+","")," ",""), 
+""",",
+
+"""time"":""", Substitute(Substitute(时间, "
+","")," ",""), 
+"""",
+
+"}")'
+        IF $fx'=任务页码 < Int(总页数) || 任务行 < 10' THEN
+            SET 单条记录 TO $fx'=Concatenate(单条记录, ",")'
+        END
+        Text.AppendLine Text: $fx'=总记录' LineToAppend: $fx'=单条记录' Result=> 总记录
     END
     IF $fx'=Value(总页数) >= 任务页码' THEN
         MouseAndKeyboard.SendMouseClick.ClickAt ClickType: MouseAndKeyboard.MouseClickType.LeftClick MillisecondsDelay: $fx'=0' X: $fx'=下一页X' Y: $fx'=下一页Y' RelativeTo: MouseAndKeyboard.PositionRelativeTo.ActiveWindow MovementStyle: MouseAndKeyboard.MovementStyle.Instant
     END
 END
+SET 总记录 TO $fx'=Concatenate(
+总记录, 
+"
+]"
+)'
 Display.ShowMessageDialog.ShowMessage Title: $fx'导出完成' Message: $fx'是否转换为更紧凑的 Base64 编码格式方便复制和粘贴？选否将以明文文本格式输出' Icon: Display.Icon.Question Buttons: Display.Buttons.YesNo DefaultButton: Display.DefaultButton.Button1 IsTopMost: True ButtonPressed=> 是否转为Base64
 File.GetTempPath TempFile=> 临时文件
 File.WriteText File: $fx'=临时文件' TextToWrite: $fx'=总记录' AppendNewLine: True IfFileExists: File.IfFileExists.Overwrite Encoding: File.FileEncoding.UTF8

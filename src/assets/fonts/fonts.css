@@ -1,0 +1,19 @@
+@font-face {
+    font-family: "HarmonyOS_Sans_SC_Regular_MIN";
+    src: url('@/assets/fonts/HarmonyOS_Sans_SC_Regular_MIN.ttf');
+}
+
+@font-face {
+    font-family: "HarmonyOS_Sans_SC_Regular";
+    src: url('@/assets/fonts/HarmonyOS_Sans_SC_Regular.ttf');
+}
+
+@font-face {
+    font-family: "Altinn-DIN Exp";
+    src: url('Altinn-DIN Exp.ttf');
+}
+
+@font-face {
+    font-family: "ChillJinshuSong_Regular_MIN";
+    src: url('ChillJinshuSong_Regular_MIN.woff');
+}

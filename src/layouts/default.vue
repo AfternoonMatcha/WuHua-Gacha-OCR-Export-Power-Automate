@@ -1,7 +1,7 @@
 <template>
     <v-layout>
         <v-navigation-drawer v-model="drawer" temporary density="comfortable">
-            <v-list-item lines="two" title="WuHua-Gacha-OCR-Export" subtitle="物华弥新抽卡记录导出项目"
+            <v-list-item lines="two" title="WuHua Gacha OCR Export" subtitle="物华弥新抽卡记录 OCR 导出项目"
                 @click="router.push({ path: '/' })" />
             <v-divider />
             <v-list density="comfortable" nav>
@@ -25,8 +25,8 @@
                 <v-app-bar-nav-icon @click.stop="drawer = !drawer" v-ripple.stop style="margin-left: 1.5px" />
             </template>
 
-            <v-app-bar-title @click="router.push({ path: '/' })"
-                style="cursor: pointer">WuHua-Gacha-OCR-Export</v-app-bar-title>
+            <v-app-bar-title @click="router.push({ path: '/' })" style="cursor: pointer">WuHua Gacha OCR
+                Export</v-app-bar-title>
         </v-app-bar>
 
         <v-main>

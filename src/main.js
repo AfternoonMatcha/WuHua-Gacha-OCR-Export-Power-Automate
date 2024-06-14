@@ -17,7 +17,7 @@ const routes = setupLayouts(generatedRoutes)
 // t.logs('Routers', routes)
 import config from "/package.json";
 t.logTitle([
-    "WuHua-Gacha-OCR-Export-Power-Automate",
+    "WuHua Gacha OCR Export",
     "By: Matce",
     "Ver. " + config.version
 ]);

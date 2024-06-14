@@ -6,8 +6,11 @@
             <v-divider />
             <v-list density="comfortable" nav>
                 <v-list-item v-for="navItem in configStore.nav" :prepend-icon="'mdi-' + navItem.icon"
-                    :title="navItem.title" :active="urlNow === navItem.url"
-                    @click="router.push({ path: navItem.url })" />
+                    :active="urlNow === navItem.url" @click="router.push({ path: navItem.url })">
+                    <template v-slot:title>
+                        <div style="margin-top: 1px">{{ navItem.title }}</div>
+                    </template>
+                </v-list-item>
             </v-list>
             <v-divider />
             <v-list lines="three">
@@ -17,9 +20,9 @@
             </v-list>
         </v-navigation-drawer>
 
-        <v-app-bar subtitle="test">
+        <v-app-bar subtitle="test" v-ripple>
             <template v-slot:prepend>
-                <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+                <v-app-bar-nav-icon @click.stop="drawer = !drawer" v-ripple.stop style="margin-left: 1.5px" />
             </template>
 
             <v-app-bar-title @click="router.push({ path: '/' })"
@@ -68,7 +71,7 @@ watch(() => route.path, (newPath) => {
         flex: 1;
         max-width: 70%;
         transition: .2s ease;
-        padding: 0 19px;
+        padding: 0 20px;
 
         @media (max-width: 1300px) {
             & {

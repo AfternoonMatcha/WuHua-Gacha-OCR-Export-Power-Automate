@@ -1,11 +1,11 @@
 <template>
     <div class="main">
-        <div class="greeting">Welcome 欢迎</div>
-        <div class="toolBox mt-10">
+        <div class="title">Welcome 欢迎</div>
+        <div class="navBox">
             <v-card height="100" v-ripple="{ class: 'text-white' }" v-for="navItem in [...configStore.nav.filter(nav => nav.url !== '/'),
-            { title: '敬请期待', url: null, icon: 'chevron-right' }]" cols="auto" class="tool d-flex elevation-0"
+            { title: '敬请期待', url: null, icon: 'chevron-right' }]" cols="auto" class="nav d-flex elevation-0"
                 :prepend-icon="'mdi-' + navItem.icon" @click="router.push({ path: navItem.url })">
-                <div class="toolTitle">{{ navItem.title }}</div>
+                <div class="navTitle">{{ navItem.title }}</div>
             </v-card>
         </div>
     </div>
@@ -24,20 +24,21 @@ const configStore = useConfigStore()
 
 <style lang="scss" scoped>
 .main {
-    .greeting {
-        padding-top: 80px;
+    .title {
+        margin-top: 80px;
+        margin-bottom: 40px;
         font-size: 30px;
         font-weight: bold;
         overflow: hidden;
     }
 
-    .toolBox {
+    .navBox {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
         overflow: hidden;
 
-        .tool {
+        .nav {
             width: 100%;
             max-width: 100%;
             cursor: pointer;
@@ -48,7 +49,7 @@ const configStore = useConfigStore()
 
             &Title {
                 flex: 1;
-                margin-top: -2px;
+                margin-top: 1px;
                 font-size: 16px;
                 overflow: hidden;
                 white-space: pre-wrap;
@@ -60,19 +61,19 @@ const configStore = useConfigStore()
             }
         }
 
-        .tool:hover {
+        .nav:hover {
             padding-left: 20px;
         }
 
         @media (min-width: 700px) {
-            .tool {
+            .nav {
                 width: calc(calc(100% - 10px) / 2);
                 padding-right: 0px;
             }
         }
 
         @media (min-width: 900px) {
-            .tool {
+            .nav {
                 width: calc(calc(100% - 20px) / 3);
             }
         }

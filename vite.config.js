@@ -28,13 +28,10 @@ export default defineConfig({
         host: '0.0.0.0',
         port: process.env.VITE_APP_PORT,
         proxy: {
-            // 指定代理所有/api请求
-            '/api': {
-                // 代理请求之后的请求地址
-                target: 'http://localhost:8080',
-                // 跨域
-                changeOrigin: true,
-                rewrite: path => path.replace(/^\/api/, '')
+            '/wiki': {
+                target: 'https://Matce.cn:98/wiki', // 代理请求之后的请求地址
+                changeOrigin: true, // 跨域
+                rewrite: path => path.replace(/^\/wiki/, '')
             }
         }
     },

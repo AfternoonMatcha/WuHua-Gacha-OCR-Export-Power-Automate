@@ -42,7 +42,7 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import t from "@/utils/MatceTools.js"; //JS 方法工具箱\
+import t from "@/utils/MatceTools.js"; //JS 方法工具箱
 import { useConfigStore } from "@/stores/config";
 const configStore = useConfigStore()
 

@@ -17,6 +17,8 @@ import { ref } from "vue";
 import { toast } from 'vue3-toastify';
 const loadingShow = ref(false);
 setTimeout(() => loadingShow.value = true, 0.2 * 1000)
+import { useConfigStore } from "@/stores/config";
+const configStore = useConfigStore()
 
 const getItemDatabase = () => {
     const logName = "获取器者数据库"
@@ -40,6 +42,7 @@ const getItemDatabase = () => {
                 });
             });
             t.log(t.GET, logName, result);
+            configStore.saveItemDatabase(result)
         })
         .catch(error => {
             toast.error(logName + "失败！\n" + error)

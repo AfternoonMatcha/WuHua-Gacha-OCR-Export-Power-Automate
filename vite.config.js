@@ -30,6 +30,7 @@ export default defineConfig({
         proxy: {
             '/wiki': {
                 target: 'https://Matce.cn:98/wiki', // 代理请求之后的请求地址
+                secure: false,
                 changeOrigin: true, // 跨域
                 rewrite: path => path.replace(/^\/wiki/, '')
             }

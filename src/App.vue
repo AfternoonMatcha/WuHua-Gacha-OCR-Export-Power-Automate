@@ -20,11 +20,12 @@ setTimeout(() => loadingShow.value = true, 0.2 * 1000)
 import { useConfigStore } from "@/stores/config";
 const configStore = useConfigStore()
 
-const getItemDatabase = () => {
-    const logName = "获取器者数据库"
+const getDicts = () => {
+    let logName = ""
     fetch('/wiki/%E5%99%A8%E8%80%85%E5%9B%BE%E9%89%B4', { referrer: '' })
         .then(res => res.ok ? res.text() : Promise.reject(new Error(res.statusText + "/ " + res.status)))
         .then(data => {
+            logName = "获取器者数据库"
             const parser = new DOMParser(); // 创建 DOMParser 对象
             const origin = parser.parseFromString(data, 'text/html'); // 使用 parseFromString 方法解析 HTML 字符串
             const items = origin.querySelectorAll('.visible-xs .divsort'); // 查找所有包含数据的 divsort 元素
@@ -42,14 +43,41 @@ const getItemDatabase = () => {
                 });
             });
             t.log(t.GET, logName, result);
-            configStore.saveItemDatabase(result)
+            configStore.saveItemDict(result)
+        })
+        .catch(error => {
+            toast.error(logName + "失败！\n" + error)
+            t.log(t.ERROR, logName, error)
+        });
+
+
+    fetch('/wiki/%E9%99%90%E6%97%B6%E6%8B%9B%E9%9B%86%E6%A1%A3%E6%A1%88', { referrer: '' })
+        .then(res => res.ok ? res.text() : Promise.reject(new Error(res.statusText + "/ " + res.status)))
+        .then(data => {
+            logName = "获取限时招集数据库"
+            const parser = new DOMParser(); // 创建 DOMParser 对象
+            const origin = parser.parseFromString(data, 'text/html'); // 使用 parseFromString 方法解析 HTML 字符串
+            const items = origin.querySelectorAll('.wikitable tr:not(:first-child)'); // 查找所有包含数据的 divsort 元素
+            const result = []; // 定义结果数组
+            items.forEach(item => { // 遍历所有 divsort 元素并提取数据
+                const name = item.querySelector('a').getAttribute('title');
+                const timeRange = item.querySelector('td:nth-child(3)').innerText;
+                const image = item.querySelector('img').src;
+                result.push({ // 创建对象并添加到结果数组中
+                    item: name,
+                    timeRange: timeRange,
+                    image: image
+                });
+            });
+            t.log(t.GET, logName, result);
+            configStore.saveEventDict(result)
         })
         .catch(error => {
             toast.error(logName + "失败！\n" + error)
             t.log(t.ERROR, logName, error)
         });
 }
-getItemDatabase()
+getDicts()
 </script>
 
 <style lang="scss" scoped>

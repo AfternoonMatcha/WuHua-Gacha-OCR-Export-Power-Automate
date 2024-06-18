@@ -8,11 +8,17 @@ export const useConfigStore = defineStore('config', () => {
         // { title: "示例页面", url: "/test/test", icon: "palette-swatch" },
     ])
 
-    const itemDatabase = ref([])
+    const itemDict = ref([])
 
-    const saveItemDatabase = (obj) => {
-        itemDatabase.value = obj
+    const saveItemDict = (obj) => {
+        itemDict.value = obj
     }
 
-    return { nav, itemDatabase, saveItemDatabase }
+    const eventDict = ref([])
+
+    const saveEventDict = (obj) => {
+        eventDict.value = obj
+    }
+
+    return { nav, itemDict, saveItemDict, eventDict, saveEventDict }
 });

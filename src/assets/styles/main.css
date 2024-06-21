@@ -1,21 +1,16 @@
-body {
-    margin: 0;
-}
+    ::-webkit-scrollbar {
+        display: none;
+    }
 
-* {
-    font-family: 'Altinn-DIN Exp', 'HarmonyOS_Sans_SC_Regular_MIN', 'HarmonyOS_Sans_SC_Regular',
-        'Microsoft Yahei', 'PingFang SC', 'SimHei';
-}
+    * {
+        font-family: 'Altinn-DIN Exp', 'HarmonyOS_Sans_SC_Regular_MIN', 'HarmonyOS_Sans_SC_Regular',
+            'Microsoft Yahei', 'PingFang SC', 'SimHei';
+    }
 
-button {
-    cursor: pointer;
-}
+    button {
+        cursor: pointer;
+    }
 
-/* ::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0;
-} */
-
-::selection {
-    background: hsla(0, 0%, 80%, 0.5);
-}
+    ::selection {
+        background: hsla(0, 0%, 80%, 0.5);
+    }

@@ -1,22 +1,117 @@
 <template>
-    <div class="main">
+    <div class="main" @click="editingIndex = null; editingAutoIndex = null">
         <div class="title">导入</div>
         <div class="box">
-            <div style="display: flex; gap: 20px">
+            <div style="display: flex; gap: 20px; margin-bottom: -22px">
                 <v-text-field label="Base64 或明文输入" variant="outlined" v-model="input"
                     prepend-inner-icon="mdi-content-paste" />
                 <v-btn prepend-icon="mdi-content-paste" class="boxItem" @click="transform()" size="x-large"><span
-                        style="margin-top: -1px; margin-right: -4px; letter-spacing: 1px">导入</span>
+                        style="margin-top: -1px; margin-right: -4px; letter-spacing: normal">导入</span>
                 </v-btn>
             </div>
-            <v-text-field v-if="isBase64" label="明文输出" variant="outlined" v-model="base64output"
-                prepend-inner-icon="mdi-text-long" readonly />
+            <div style="border-radius: 4px; overflow: hidden"
+                v-if="output && (output.filter(item => item.error.length > 0).length > 0 || output.filter(item => item.autoEdit.length > 0).length > 0)">
+                <v-tabs v-model="tab" grow style="background: #ffffff05" slider-color="#fff4">
+                    <v-tab value="manual" :active="tab == 'manual'" prepend-icon="mdi-pencil"
+                        v-if="output.filter(item => item.error.length > 0).length > 0">
+                        <span style="letter-spacing: normal">待手动修复项 ×
+                            {{ output.filter(item => item.error.length > 0).length }}</span>
+                    </v-tab>
+                    <v-tab value="auto" :active="tab == 'auto'" prepend-icon="mdi-creation">
+                        <span style="letter-spacing: normal">已自动修复项 ×
+                            {{ output.filter(item => item.autoEdit.length > 0).length }}</span>
+                    </v-tab>
+                </v-tabs>
+                <div class="boxTab" style="overflow-x: auto;">
+                    <v-tabs-window v-model="tab">
+                        <v-tabs-window-item value="manual">
+                            <v-table style="white-space: nowrap;" fixed-header>
+                                <thead>
+                                    <tr>
+                                        <th>稀有度</th>
+                                        <th>器者</th>
+                                        <th>招集</th>
+                                        <th>时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item, index) in output.filter(item => item.error.length > 0)"
+                                        @click.stop="editingIndex = index">
+                                        <td :class="{ highlightError: item.error.includes('rarity'), highlightSuccess: item.rarity !== item.backup.rarity }"
+                                            style="overflow: hidden">
+                                            <v-select class="tableSelect" density="compact"
+                                                v-if="(item.error.includes('rarity') || item.error.includes('item')) && editingIndex === index"
+                                                v-model="item.rarity" :items="rarityDict"
+                                                @update:modelValue="item.item = ''" />
+                                            <span v-else> {{ (item.rarity !== item.backup.rarity ?
+                                                item.backup.rarity + ' → ' : '') + item.rarity }}</span>
+                                        </td>
+                                        <td :class="{ highlightError: item.error.includes('item'), highlightSuccess: item.item !== item.backup.item }"
+                                            style="overflow: hidden">
+                                            <v-autocomplete class="tableSelect" density="compact"
+                                                v-if="item.error.includes('item') && editingIndex === index"
+                                                v-model="item.item"
+                                                :items="!item.rarity || item.rarity === '' ?
+                                                    configStore.itemDict : configStore.itemDict.filter(dictItem => dictItem.rarity === item.rarity)"
+                                                item-title="item" item-value="item"
+                                                @update:modelValue="item.item = (item.item ? item.item : '')" />
+                                            <span v-else> {{ (item.item !== item.backup.item ?
+                                                item.backup.item + ' → ' : '') + item.item }}</span>
+                                        </td>
+                                        <td>{{ item.banner }}</td>
+                                        <td>{{ item.time }}</td>
+                                    </tr>
+                                </tbody>
+                            </v-table>
+                            <v-btn v-if="output && output.filter(item => item.error.length > 0).length > 0" :disabled="output.filter(item => item.error.length > 0).every(item => {
+                                return item.error.every(errorParam => item.backup[errorParam] === item[errorParam]);
+                            })" style="margin-top:10px; width: 100%" prepend-icon="mdi-check"
+                                @click="output = output.map(obj => ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })); checkAndRepair(); tab = 'manual'"
+                                size="x-large">
+                                <span style="margin-top: -1px; margin-right: -4px; letter-spacing: normal">提交修复</span>
+                            </v-btn>
+                        </v-tabs-window-item>
+                        <v-tabs-window-item value="auto">
+                            <v-table style="white-space: nowrap" fixed-header>
+                                <thead>
+                                    <tr>
+                                        <th>稀有度</th>
+                                        <th>器者</th>
+                                        <th>招集</th>
+                                        <th>时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item, index) in output.filter(item => item.autoEdit.length > 0)"
+                                        @click.stop="editingAutoIndex = index">
+                                        <td :class="{ highlightSuccess: item.rarity !== item.backup.rarity }">
+                                            {{ (item.rarity !== item.backup.rarity ?
+                                                item.backup.rarity + ' → ' : '') + item.rarity }}
+                                        </td>
+                                        <td :class="{ highlightSuccess: item.item !== item.backup.item }">
+                                            {{ (item.item !== item.backup.item ?
+                                                item.backup.item + ' → ' : '') + item.item }}
+                                        </td>
+                                        <td>{{ item.banner }}</td>
+                                        <td>{{ item.time }}</td>
+                                    </tr>
+                                </tbody>
+                            </v-table>
+                        </v-tabs-window-item>
+                    </v-tabs-window>
+                </div>
+            </div>
+            <div class="result" v-if="output && output.filter(item => item.error.length > 0).length === 0">
+                <v-text-field :dirty="true" label="明文输出" variant="outlined" :value="JSON.stringify(output)"
+                    prepend-inner-icon="mdi-text-long" readonly />
+            </div>
         </div>
+        <br />
     </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 import { toast } from 'vue3-toastify';
 import { useConfigStore } from "@/stores/config";
 const configStore = useConfigStore()
@@ -26,9 +121,14 @@ const input = ref("77u/Wwp7InJhcml0eSI6IueJueWHuiIsImJhbm5lciI6IumZkOaXti/kuIDop
 const output = ref(null)
 const isBase64 = ref(false)
 const base64output = ref(null)
-
+const tab = ref(null)
+const editingIndex = ref(null)
+const editingAutoIndex = ref(null)
+const rarityDict = ref(["特出", "优异", "新生"])
 // 转换
 const transform = () => {
+    output.value = null
+    base64output.value = null
     const base64Pattern = /^(?:[A-Za-z0-9+\/]{4})*?(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
     isBase64.value = base64Pattern.test(input.value)
     // Base64 解析
@@ -39,8 +139,8 @@ const transform = () => {
             }).join('')).replace(/\r/g, '');
         } catch (err) {
             const logName = "Base64 解析出现错误！";
-            toast.error(logName + "\n" + err.message);
-            t.log(t.ERROR, logName, err.message);
+            toast.error(logName + "\n" + JSON.stringify(err));
+            t.log(t.ERROR, logName, err);
         }
     } else {
         base64output.value = input.value;
@@ -49,12 +149,14 @@ const transform = () => {
     try {
         output.value = JSON.parse(base64output.value.replace(/^\uFEFF/, ""));
         t.logs("JSON", output.value);
-        checkAndRepair()
+
     } catch (err) {
         const logName = "JSON 解析出现错误！";
         toast.error(logName + "\n" + err.message);
         t.log(t.ERROR, logName, err.message);
+        return
     }
+    checkAndRepair()
 }
 
 // 找到最相近的字符串
@@ -86,7 +188,6 @@ const checkAndRepair = () => {
         t.log(t.ERROR, logName);
         return
     }
-    const errorItems = []
     output.value = output.value.filter(item =>
         Object.values(item).some(value => value !== "")
     ); // 移除完全空项
@@ -94,42 +195,66 @@ const checkAndRepair = () => {
         return itemObject.item;
     });
     output.value.forEach(item => {
+        item.backup = JSON.parse(JSON.stringify(item))
+        item.error = []
+        item.autoEdit = []
         // 器者判断
         if (item.item === "") {
-            errorItems.push(item)
-            return
+            item.error.push("item")
         } else {
             if (!itemNameArray.includes(item.item)) {
                 const mostSimilarItem = findMostSimilar(item.item, itemNameArray)
                 if (mostSimilarItem.maxMatch >= 2) {
                     t.logs("器者修改", JSON.stringify(item.item), "=>", mostSimilarItem)
+                    item.autoEdit.push("item")
                     item.item = mostSimilarItem.mostSimilar
                 } else {
-                    errorItems.push(item)
-                    return
+                    item.error.push("item")
                 }
             }
         }
         // 稀有度判断
-        if (!["特出", "优异", "新生"].includes(item.rarity)) {
-            const itemFind = itemDict.find(dictItem => dictItem.item === item.item)
+        const itemFind = itemDict.find(dictItem => dictItem.item === item.item)
+        const itemFindRarity = itemFind ? itemFind.rarity : null
+        if (!rarityDict.value.includes(item.rarity) || (itemFind && itemFindRarity !== item.rarity)) {
             if (itemFind) {
-                t.logs("稀有度修改", item.item + "：", JSON.stringify(item.rarity), "=>", itemFind.rarity)
-                item.rarity = itemFind.rarity
+                t.logs("稀有度修改", item.item + "：" + JSON.stringify(item.rarity) + "=>" + itemFindRarity)
+                item.autoEdit.push("rarity")
+                item.rarity = itemFindRarity
+            } else {
+                item.error.push("rarity")
             }
         }
     });
-    t.logs(
-        "修复 JSON", JSON.parse(JSON.stringify(output.value)),
-        "需手动修复项：", JSON.parse(JSON.stringify(errorItems))
-    )
+    t.logs("修复后的 JSON", JSON.parse(JSON.stringify(output.value)))
+    if (output.value.filter(item => item.error.length > 0).length > 0) {
+        tab.value = 'manual'
+    } else {
+        toast.success("数据修复完成！\n可从输出框获取修复后的数据")
+        tab.value = 'auto'
+    }
 }
-
-transform()
+// transform()
 </script>
 
 <style lang="scss" scoped>
+.highlightError {
+    background: rgba(map-get($red, "base"), .3);
+    cursor: pointer;
+}
+
+.highlightSuccess {
+    background: rgba(map-get($light-green, "base"), .3);
+}
+
+.tableSelect {
+    min-width: 147px;
+    margin-bottom: -22px;
+}
+
 .main {
+    min-height: calc(100vh - 104px);
+
     .title {
         margin: 40px 0;
         font-size: 30px;
@@ -140,12 +265,15 @@ transform()
     .box {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 20px;
+        max-width: calc(100vw - 40px);
 
         &Item {
             margin-bottom: 22px;
             height: 56px
         }
     }
+
+    .result {}
 }
 </style>

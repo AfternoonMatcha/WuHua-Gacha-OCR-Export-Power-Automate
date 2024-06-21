@@ -1,6 +1,6 @@
 <template>
     <div class="app">
-        <router-view />
+        <router-view v-if="!getDictLoading" />
         <div class="loading" :class="{ loadingShow: loadingShow }">
             <div class="loadingBox">
                 <span class="loadingBoxText">{{ "WuHua Gacha\nOCR Export\n\n载入中……" }}</span>
@@ -19,9 +19,11 @@ const loadingShow = ref(false);
 setTimeout(() => loadingShow.value = true, 0.2 * 1000)
 import { useConfigStore } from "@/stores/config";
 const configStore = useConfigStore()
+const getDictLoading = ref(true)
 
 const getDicts = () => {
     let logName = ""
+    getDictLoading.value = true
     fetch('/wiki/%E5%99%A8%E8%80%85%E5%9B%BE%E9%89%B4', { referrer: '' })
         .then(res => res.ok ? res.text() : Promise.reject(new Error(res.statusText + "/ " + res.status)))
         .then(data => {
@@ -48,9 +50,9 @@ const getDicts = () => {
         .catch(error => {
             toast.error(logName + "失败！\n" + error)
             t.log(t.ERROR, logName, error)
-        });
-
-
+        }).finally(() => {
+            getDictLoading.value = false
+        })
     fetch('/wiki/%E9%99%90%E6%97%B6%E6%8B%9B%E9%9B%86%E6%A1%A3%E6%A1%88', { referrer: '' })
         .then(res => res.ok ? res.text() : Promise.reject(new Error(res.statusText + "/ " + res.status)))
         .then(data => {
@@ -111,5 +113,19 @@ getDicts()
             }
         }
     }
+}
+</style>
+
+
+<style lang="scss">
+.Toastify__toast {
+    backdrop-filter: blur(20px);
+}
+
+:root {
+    --toastify-color-info: #{rgba(map-get($blue, "darken-4"), .5)} !important;
+    --toastify-color-success: #{rgba(map-get($light-green, "darken-4"), .5)} !important;
+    --toastify-color-warning: #{rgba(map-get($orange, "darken-4"), .5)} !important;
+    --toastify-color-error: #{rgba(map-get($red, "darken-4"), .5)} !important;
 }
 </style>

@@ -1,7 +1,7 @@
 {
     "name": "WuHua-Gacha-OCR-Export",
     "private": false,
-    "version": "0.2.6",
+    "version": "0.2.6 EX",
     "type": "module",
     "scripts": {
         "dev": "vite",

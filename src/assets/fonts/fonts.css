@@ -1,19 +1,27 @@
 @font-face {
     font-family: "HarmonyOS_Sans_SC_Regular_MIN";
-    src: url('@/assets/fonts/HarmonyOS_Sans_SC_Regular_MIN.woff2');
+    src: url('https://cdn.jsdmirror.com/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/HarmonyOS_Sans_SC_Regular_MIN.woff2'),
+        url('https://cdn.jsdelivr.net/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/HarmonyOS_Sans_SC_Regular_MIN.woff2'),
+        url('@/assets/fonts/HarmonyOS_Sans_SC_Regular_MIN.woff2');
 }
 
 @font-face {
     font-family: "HarmonyOS_Sans_SC_Regular";
-    src: url('@/assets/fonts/HarmonyOS_Sans_SC_Regular.woff2');
+    src: url('https://cdn.jsdmirror.com/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/HarmonyOS_Sans_SC_Regular.woff2'),
+        url('https://cdn.jsdelivr.net/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/HarmonyOS_Sans_SC_Regular.woff2'),
+        url('@/assets/fonts/HarmonyOS_Sans_SC_Regular.woff2');
 }
 
 @font-face {
     font-family: "Altinn-DIN Exp";
-    src: url('Altinn-DIN Exp.woff2');
+    src: url('https://cdn.jsdmirror.com/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/Altinn-DIN Exp.woff2'),
+        url('https://cdn.jsdelivr.net/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/Altinn-DIN Exp.woff2'),
+        url('@/assets/fonts/Altinn-DIN Exp.woff2');
 }
 
 @font-face {
     font-family: "ChillJinshuSong_Regular_MIN";
-    src: url('ChillJinshuSong_Regular_MIN.woff2');
+    src: url('https://cdn.jsdmirror.com/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/ChillJinshuSong_Regular_MIN.woff2'),
+        url('https://cdn.jsdelivr.net/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/ChillJinshuSong_Regular_MIN.woff2'),
+        url('@/assets/fonts/ChillJinshuSong_Regular_MIN.woff2');
 }

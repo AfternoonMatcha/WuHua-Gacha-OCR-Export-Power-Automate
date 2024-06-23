@@ -3,8 +3,12 @@
     }
 
     * {
-        font-family: 'Altinn-DIN Exp', 'HarmonyOS_Sans_SC_Regular_MIN', 'HarmonyOS_Sans_SC_Regular',
-            'Microsoft Yahei', 'PingFang SC', 'SimHei';
+        font-family: 'Altinn-DIN Exp', 'HarmonyOS_Sans_SC_Regular_MIN', 'Microsoft Yahei', 'PingFang SC', 'SimHei';
+    }
+
+    .fontMin *,
+    .v-overlay-container * {
+        font-family: 'Altinn-DIN Exp'
     }
 
     button {

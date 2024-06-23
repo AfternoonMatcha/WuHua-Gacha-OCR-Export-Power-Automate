@@ -3,16 +3,18 @@
         <div class="title">导入</div>
         <div class="box">
             <div style="display: flex; gap: 20px; margin-bottom: -22px">
-                <v-text-field label="Base64 或明文输入" variant="outlined" v-model="input"
+                <v-text-field class="fontMin" label="Base64 或明文输入" variant="outlined" v-model="input"
                     prepend-inner-icon="mdi-content-paste" />
-                <v-btn prepend-icon="mdi-content-paste" class="boxItem" @click="transform()" size="x-large"><span
-                        style="margin-top: -1px; margin-right: -4px; letter-spacing: normal">导入</span>
+                <v-btn prepend-icon="mdi-login-variant" class="boxItem" @click="transform()" size="x-large"><span
+                        style="margin-top: -2px; margin-right: -4px; margin-left: -4px; letter-spacing: normal">导入</span>
                 </v-btn>
             </div>
             <v-expand-transition>
-                <div style="border-radius: 4px; overflow: hidden;"
+                <div style="overflow: hidden"
                     v-if="output && (output.filter(item => item.error.length > 0).length > 0 || output.filter(item => item.autoEdit.length > 0).length > 0)">
-                    <v-tabs v-model="tab" grow style="background: #ffffff05; margin-top: 22px" slider-color="#fff4">
+                    <v-tabs v-model="tab" grow
+                        style="background: #ffffff05; margin-top: 22px; border-radius: 4px 4px 0 0"
+                        slider-color="#fff4">
                         <v-tab value="manual" :active="tab == 'manual'" prepend-icon="mdi-pencil"
                             v-if="output.filter(item => item.error.length > 0).length > 0">
                             <span style="letter-spacing: normal">待手动修复项 ×
@@ -23,14 +25,15 @@
                                 {{ output.filter(item => item.autoEdit.length > 0).length }}</span>
                         </v-tab>
                     </v-tabs>
-                    <div class="boxTab" style="overflow-x: auto;">
+                    <div class="boxTab">
                         <v-tabs-window v-model="tab">
                             <v-tabs-window-item value="manual">
-                                <v-table style="white-space: nowrap;" fixed-header>
+                                <v-table class="boxTabTable fontMin" fixed-header>
                                     <thead>
                                         <tr>
                                             <th>稀有度</th>
                                             <th>器者</th>
+                                            <th>位置</th>
                                             <th>招集</th>
                                             <th>时间</th>
                                         </tr>
@@ -43,7 +46,7 @@
                                                 <v-select class="tableSelect" density="compact"
                                                     v-if="(item.error.includes('rarity') || item.error.includes('item')) && editingIndex === index"
                                                     v-model="item.rarity" :items="rarityDict"
-                                                    @update:modelValue="item.item = ''" />
+                                                    @update:modelValue="item.item = ''" style="min-width: 95px" />
                                                 <span v-else> {{ (item.rarity !== item.backup.rarity ?
                                                     item.backup.rarity + ' → ' : '') + item.rarity }}</span>
                                             </td>
@@ -55,31 +58,35 @@
                                                     :items="!item.rarity || item.rarity === '' ?
                                                         configStore.itemDict : configStore.itemDict.filter(dictItem => dictItem.rarity === item.rarity)"
                                                     item-title="item" item-value="item"
-                                                    @update:modelValue="item.item = (item.item ? item.item : '')" />
+                                                    @update:modelValue="item.item = (item.item ? item.item : '')"
+                                                    style="min-width: 147px" />
                                                 <span v-else> {{ (item.item !== item.backup.item ?
                                                     item.backup.item + ' → ' : '') + item.item }}</span>
                                             </td>
+                                            <td>{{ item.page }} 页 {{ item.row }} 行</td>
                                             <td>{{ item.banner }}</td>
                                             <td>{{ item.time }}</td>
                                         </tr>
                                     </tbody>
                                 </v-table>
                                 <v-btn v-if="output && output.filter(item => item.error.length > 0).length > 0"
-                                    :disabled="output.filter(item => item.error.length > 0).every(item => {
-                                        return item.error.every(errorParam => item.backup[errorParam] === item[errorParam] || item[errorParam] === '');
-                                    })" style="margin-top:10px; width: 100%" prepend-icon="mdi-check"
+                                    :disabled="!output.filter(item => item.error.length > 0).every(item => {
+                                        return item.error.every(errorParam =>
+                                            item[errorParam] !== item.backup[errorParam]) && item.item !== '' && item.rarity !== '';
+                                    })" style="margin-top: 10px; width: 100%" prepend-icon="mdi-check"
                                     @click="output = output.map(obj => ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })); checkAndRepair(); tab = 'manual'"
                                     size="x-large">
                                     <span
-                                        style="margin-top: -1px; margin-right: -4px; letter-spacing: normal">提交修复</span>
+                                        style="margin-top: -2px; margin-right: -4px; margin-left: -4px; letter-spacing: normal">提交修复</span>
                                 </v-btn>
                             </v-tabs-window-item>
                             <v-tabs-window-item value="auto">
-                                <v-table style="white-space: nowrap" fixed-header>
+                                <v-table class="boxTabTable fontMin" fixed-header>
                                     <thead>
                                         <tr>
                                             <th>稀有度</th>
                                             <th>器者</th>
+                                            <th>位置</th>
                                             <th>招集</th>
                                             <th>时间</th>
                                         </tr>
@@ -87,14 +94,17 @@
                                     <tbody>
                                         <tr v-for="(item, index) in output.filter(item => item.autoEdit.length > 0)"
                                             @click.stop="editingAutoIndex = index">
-                                            <td :class="{ highlightSuccess: item.rarity !== item.backup.rarity }">
+                                            <td
+                                                :class="{ highlightSuccess: item.rarity !== item.backup.rarity && item.rarity !== '' }">
                                                 {{ (item.rarity !== item.backup.rarity ?
                                                     item.backup.rarity + ' → ' : '') + item.rarity }}
                                             </td>
-                                            <td :class="{ highlightSuccess: item.item !== item.backup.item }">
+                                            <td
+                                                :class="{ highlightSuccess: item.item !== item.backup.item && item.item !== '' }">
                                                 {{ (item.item !== item.backup.item ?
                                                     item.backup.item + ' → ' : '') + item.item }}
                                             </td>
+                                            <td>{{ item.page }} 页 {{ item.row }} 行</td>
                                             <td>{{ item.banner }}</td>
                                             <td>{{ item.time }}</td>
                                         </tr>
@@ -107,7 +117,7 @@
             </v-expand-transition>
             <div class="result" style="padding-top: 22px"
                 v-if="output && output.filter(item => item.error.length > 0).length === 0">
-                <v-text-field :dirty="true" label="明文输出" variant="outlined"
+                <v-text-field class="fontMin" :dirty="true" label="明文输出" variant="outlined"
                     :value="JSON.stringify(output.map(obj => ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })))"
                     prepend-inner-icon="mdi-text-long" readonly />
             </div>
@@ -117,7 +127,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from "vue";
+import { ref } from "vue";
 import { toast } from 'vue3-toastify';
 import { useConfigStore } from "@/stores/config";
 const configStore = useConfigStore()
@@ -194,14 +204,23 @@ const checkAndRepair = () => {
         t.log(t.ERROR, logName);
         return
     }
+
+    output.value.forEach((item, index) => {
+        item.backup = JSON.parse(JSON.stringify(item)) // 添加比对副本
+        item.page = Math.floor(index / 10) + 1 // 添加所在页数
+        item.row = index % 10 + 1 // 添加所在行数
+    })
+
     output.value = output.value.filter(item =>
-        Object.values(item).some(value => value !== "")
-    ); // 移除完全空项
+        !Object.keys(item).filter(key => !["backup", "page", "row"].includes(key))
+            .every(checkKey => item[checkKey] === "") // 移除完全空项
+    );
+
     const itemNameArray = itemDict.map((itemObject) => {
         return itemObject.item;
     });
-    output.value.forEach(item => {
-        item.backup = JSON.parse(JSON.stringify(item))
+    output.value.forEach((item) => {
+        item.banner = item.banner.replace("／", "/") // 招集修复
         item.error = []
         item.autoEdit = []
         // 器者判断
@@ -211,7 +230,7 @@ const checkAndRepair = () => {
             if (!itemNameArray.includes(item.item)) {
                 const mostSimilarItem = findMostSimilar(item.item, itemNameArray)
                 if (mostSimilarItem.maxMatch >= 2) {
-                    t.logs("器者修改", JSON.stringify(item.item), "=>", mostSimilarItem)
+                    t.logs("器者修改", JSON.stringify(item.item), "→", mostSimilarItem)
                     item.autoEdit.push("item")
                     item.item = mostSimilarItem.mostSimilar
                 } else {
@@ -224,12 +243,26 @@ const checkAndRepair = () => {
         const itemFindRarity = itemFind ? itemFind.rarity : null
         if (!rarityDict.value.includes(item.rarity) || (itemFind && itemFindRarity !== item.rarity)) {
             if (itemFind) {
-                t.logs("稀有度修改", item.item + "：" + JSON.stringify(item.rarity) + "=>" + itemFindRarity)
+                t.logs("稀有度修改", item.item + "：" + JSON.stringify(item.rarity) + " → " + itemFindRarity)
                 item.autoEdit.push("rarity")
                 item.rarity = itemFindRarity
             } else {
                 item.error.push("rarity")
             }
+        }
+        // 时间判断
+        try {
+            if (!item.time.match(/(\d{4})-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01]) (0?[0-9]|1[0-9]|2[0-3]):([0-5][0-9])/)) {
+                const dateParts = item.time.match(/(\d{4})年(\d{1,2})月(\d{1,2})日(\d{1,2})时(\d{1,2})分/)
+                if (dateParts) {
+                    const [, year, month, day, hour, minute] = dateParts;
+                    item.time = year + '-' + month.padStart(2, '0') + '-' + day.padStart(2, '0') + ' '
+                        + hour.padStart(2, '0') + ':' + minute.padStart(2, '0');
+                } else { throw new Error() }
+            }
+        } catch (error) {
+            t.log(t.NOTICE, "时间错误", item, error)
+            // item.error.push("time")
         }
     });
     t.logs("修复后的 JSON", JSON.parse(JSON.stringify(output.value)))
@@ -254,7 +287,6 @@ const checkAndRepair = () => {
 }
 
 .tableSelect {
-    min-width: 147px;
     margin-bottom: -22px;
 }
 
@@ -276,6 +308,15 @@ const checkAndRepair = () => {
         &Item {
             margin-bottom: 22px;
             height: 56px
+        }
+
+        &Tab {
+            overflow-x: auto;
+
+            &Table {
+                white-space: nowrap;
+                border-radius: 0 0 4px 4px;
+            }
         }
     }
 

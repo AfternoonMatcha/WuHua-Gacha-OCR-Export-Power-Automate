@@ -5,12 +5,12 @@
         url('@/assets/fonts/HarmonyOS_Sans_SC_Regular_MIN.woff2');
 }
 
-@font-face {
+/* @font-face {
     font-family: "HarmonyOS_Sans_SC_Regular";
     src: url('https://cdn.jsdmirror.com/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/HarmonyOS_Sans_SC_Regular.woff2'),
         url('https://cdn.jsdelivr.net/gh/AfternoonMatcha/WuHua-Gacha-OCR-Export-Power-Automate/src/assets/fonts/HarmonyOS_Sans_SC_Regular.woff2'),
         url('@/assets/fonts/HarmonyOS_Sans_SC_Regular.woff2');
-}
+} */
 
 @font-face {
     font-family: "Altinn-DIN Exp";

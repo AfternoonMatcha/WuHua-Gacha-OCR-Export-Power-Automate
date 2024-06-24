@@ -5,9 +5,13 @@
             <div style="display: flex; gap: 20px; margin-bottom: -22px">
                 <v-text-field class="fontMin" label="Base64 或明文输入" variant="outlined" v-model="input"
                     prepend-inner-icon="mdi-content-paste" />
-                <v-btn prepend-icon="mdi-login-variant" class="boxItem" @click="transform()" size="x-large"><span
+                <v-btn prepend-icon="mdi-login-variant" class="boxItem" @click="transform()" size="x-large"
+                    :disabled="!input"><span
                         style="margin-top: -2px; margin-right: -4px; margin-left: -4px; letter-spacing: normal">导入</span>
                 </v-btn>
+            </div>
+            <div style="margin-bottom: -44px">
+                <v-checkbox v-model="ignoreRarityCyan" label="需手动修复项忽略稀有度为 新生 的记录" />
             </div>
             <v-expand-transition>
                 <div style="overflow: hidden"
@@ -130,7 +134,7 @@
 import { ref } from "vue";
 import { toast } from 'vue3-toastify';
 import { useConfigStore } from "@/stores/config";
-const configStore = useConfigStore()
+const configStore = useConfigStore();
 import t from "@/utils/MatceTools.js";
 
 const input = ref("77u/Wwp7InJhcml0eSI6IueJueWHuiIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5rSb56We6LWL5Zu+IiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Ux5pe2MjPliIYifSwKeyJyYXJpdHkiOiLkvJjlvIIiLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuWkp+ebgum8jiIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMeaXtjIy5YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLnjpvpm4XpmbbnopciLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTHml7YxNuWIhiJ9LAp7InJhcml0eSI6IuaWsOeUnyIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5Y+v54ix6Iqx5p2fIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Ux5pe2MTbliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuWuneefs+WGoCIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMeaXtjE25YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLokpnljLvoja/ooosiLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTDml7Y1NOWIhiJ9LAp7InJhcml0eSI6IuaWsOeUnyIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5b+D5b2i5p6qIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2NTTliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiIiLCJpdGVtIjoi55m96YeJ57u/5b2p55O2IiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2NTTliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IiIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMOaXtjMy5YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLkupTmn7HlmagiLCJ0aW1lIjoiIn0sCnsicmFyaXR5Ijoi54m55Ye6IiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLllYbpnoUiLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTDml7YzMeWIhiJ9LAp7InJhcml0eSI6IiIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5b+D5b2i5p6qIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2MzHliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuWPr+eIseiKseadnyIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMOaXtjI45YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLlpKnmsJTljZzpqqgiLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTDml7YyOOWIhiJ9LAp7InJhcml0eSI6IuS8mOW8giIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5aSp5Lqh57CLIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2MjjliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuS6uuWktOeTtiIsInRpbWUiOiIyMDI05bm0NeaciDE35pelMjPml7Y1N+WIhiJ9LAp7InJhcml0eSI6IuaWsOeUnyIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi55+z5YagIiwidGltZSI6IjIwMjTlubQ15pyIMTfml6UyM+aXtjUw5YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLnjpvpm4XpmbbnopciLCJ0aW1lIjoiMjAyNOW5tDXmnIgxN+aXpTIz5pe2MzjliIYifSwKeyJyYXJpdHkiOiIiLCJiYW5uZXIiOiIiLCJpdGVtIjoiIiwidGltZSI6IiJ9LAp7InJhcml0eSI6IiIsImJhbm5lciI6IiIsIml0ZW0iOiIiLCJ0aW1lIjoiIn0KXQ==")
@@ -141,6 +145,7 @@ const tab = ref(null)
 const editingIndex = ref(null)
 const editingAutoIndex = ref(null)
 const rarityDict = ref(["特出", "优异", "新生"])
+
 // 转换
 const transform = () => {
     output.value = null
@@ -163,9 +168,19 @@ const transform = () => {
     }
     // JSON 解析
     try {
-        output.value = JSON.parse(base64output.value.replace(/^\uFEFF/, ""));
+        const parseData = JSON.parse(base64output.value.replace(/^\uFEFF/, ""));
+        if (!(Array.isArray(parseData) && parseData.every(item => {
+            return (
+                typeof item.rarity === 'string' &&
+                typeof item.item === 'string' &&
+                typeof item.banner === 'string' &&
+                typeof item.time === 'string'
+            );
+        }))) {
+            throw new Error("请检查您的输入数据是否正确")
+        }
+        output.value = parseData
         t.logs("JSON", output.value);
-
     } catch (err) {
         const logName = "JSON 解析出现错误！";
         toast.error(logName + "\n" + err.message);
@@ -179,24 +194,33 @@ const transform = () => {
 function findMostSimilar(str, arr) {
     let maxMatch = 0;
     let mostSimilar = '';
-
-    arr.forEach(item => {
+    let arrCheck = JSON.parse(JSON.stringify(arr)).map(item => {
+        return { value: item, matchCount: 0 }
+    })
+    arrCheck.forEach(item => {
         let matchCount = 0;
         str.split('').forEach(char => {
-            if (item.includes(char)) {
+            if (item.value.includes(char)) {
                 matchCount++;
             }
         });
+        item.matchCount = matchCount
         if (matchCount > maxMatch) {
             maxMatch = matchCount;
-            mostSimilar = item;
         }
     });
+    const mostSimilarArray = arrCheck.filter(item => item.matchCount === maxMatch)
+    if (mostSimilarArray.length > 1) {
+        maxMatch = 0 // 出现多个最相近项时返回未找到
+    } else if (mostSimilarArray.length === 1) {
+        mostSimilar = mostSimilarArray[0].value; // 仅当有一个最相近项时返回找到的最相近项
+    }
     return { mostSimilar, maxMatch };
 }
 
+const ignoreRarityCyan = ref(true)
 const checkAndRepair = () => {
-    const logName = "";
+    let logName = "";
     const itemDict = configStore.itemDict
     if (itemDict.length < 1) {
         logName = "器者数据库为空！无法修复数据"
@@ -225,7 +249,9 @@ const checkAndRepair = () => {
         item.autoEdit = []
         // 器者判断
         if (item.item === "") {
-            item.error.push("item")
+            if (!ignoreRarityCyan.value || item.rarity !== "新生") {
+                item.error.push("item")
+            }
         } else {
             if (!itemNameArray.includes(item.item)) {
                 const mostSimilarItem = findMostSimilar(item.item, itemNameArray)
@@ -234,7 +260,9 @@ const checkAndRepair = () => {
                     item.autoEdit.push("item")
                     item.item = mostSimilarItem.mostSimilar
                 } else {
-                    item.error.push("item")
+                    if (!ignoreRarityCyan.value || item.rarity !== "新生") {
+                        item.error.push("item")
+                    }
                 }
             }
         }
@@ -247,7 +275,7 @@ const checkAndRepair = () => {
                 item.autoEdit.push("rarity")
                 item.rarity = itemFindRarity
             } else {
-                item.error.push("rarity")
+                item.error.push("item")
             }
         }
         // 时间判断
@@ -261,7 +289,7 @@ const checkAndRepair = () => {
                 } else { throw new Error() }
             }
         } catch (error) {
-            t.log(t.NOTICE, "时间错误", item, error)
+            t.log(t.NOTICE, "时间错误", item, error.message)
             // item.error.push("time")
         }
     });
@@ -269,7 +297,7 @@ const checkAndRepair = () => {
     if (output.value.filter(item => item.error.length > 0).length > 0) {
         tab.value = 'manual'
     } else {
-        toast.success("数据修复完成！\n可从输出框获取修复后的数据")
+        toast.success("数据修复完成！")
         tab.value = 'auto'
     }
 }

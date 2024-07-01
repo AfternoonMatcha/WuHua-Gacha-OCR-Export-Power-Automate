@@ -49,3 +49,16 @@ app.mount('#app')
 // 引入字体
 import '@/assets/fonts/fonts.css';
 import '@/assets/styles/main.css';
+
+// 使 MDI 图标库未载入完全时不显示字符
+for (let i = 0; i < document.styleSheets.length; i++) { // 遍历所有样式表
+    const styleSheet = document.styleSheets[i];
+    for (let j = 0; j < styleSheet.cssRules.length; j++) { // 遍历样式表中的所有规则
+        const rule = styleSheet.cssRules[j];
+        if (rule instanceof CSSFontFaceRule && rule.style.fontFamily === JSON.stringify("Material Design Icons")) { // 查找 @font-face 规则
+            rule.style.fontDisplay = 'block'; // 添加 font-display 属性
+            t.logs("MDI 图标库样式优化", [rule])
+            break;
+        }
+    }
+}

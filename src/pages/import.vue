@@ -2,9 +2,11 @@
     <div class="main" @click="editingIndex = null; editingAutoIndex = null">
         <div class="title">导入</div>
         <div class="box">
+            <v-text-field label="Base64 或明文输入" variant="outlined" v-model="input" prepend-inner-icon="mdi-content-paste"
+                clearable />
             <div style="display: flex; gap: 20px; margin-bottom: -22px">
-                <v-text-field class="fontMin" label="Base64 或明文输入" variant="outlined" v-model="input"
-                    prepend-inner-icon="mdi-content-paste" />
+                <v-file-input label="存档合并上传（非必填）" variant="outlined" v-model="inputFile" accept=".json"
+                    prepend-inner-icon="mdi-content-save-move-outline" :prepend-icon="null" />
                 <v-btn prepend-icon="mdi-login-variant" class="boxItem" @click="transform()" size="x-large"
                     :disabled="!input"><span
                         style="margin-top: -2px; margin-right: -4px; margin-left: -4px; letter-spacing: normal">导入</span>
@@ -14,25 +16,28 @@
                 <v-checkbox v-model="ignoreRarityCyan" label="需手动修复项忽略稀有度为 新生 的记录" />
             </div>
             <v-expand-transition>
-                <div style="overflow: hidden"
-                    v-if="output && (output.filter(item => item.error.length > 0).length > 0 || output.filter(item => item.autoEdit.length > 0).length > 0)">
+                <div style="overflow: hidden; "
+                    v-if="output && (output.filter(item => item.error.length > 0).length > 0 || output.filter(item => item.autoFixed.length > 0).length > 0)">
                     <v-tabs v-model="tab" grow
                         style="background: #ffffff05; margin-top: 22px; border-radius: 4px 4px 0 0"
                         slider-color="#fff4">
                         <v-tab value="manual" :active="tab == 'manual'" prepend-icon="mdi-pencil"
                             v-if="output.filter(item => item.error.length > 0).length > 0">
-                            <span style="letter-spacing: normal">待手动修复项 ×
+                            <span style="letter-spacing: normal">需手动修复 ×
                                 {{ output.filter(item => item.error.length > 0).length }}</span>
                         </v-tab>
                         <v-tab value="auto" :active="tab == 'auto'" prepend-icon="mdi-creation">
-                            <span style="letter-spacing: normal">已自动修复项 ×
-                                {{ output.filter(item => item.autoEdit.length > 0).length }}</span>
+                            <span style="letter-spacing: normal">已自动修复 ×
+                                {{ output.filter(item => item.autoFixed.length > 0).length }}</span>
+                            <v-btn icon="mdi-chevron-up" variant="plain" style="position: absolute; right: 0"
+                                v-ripple="null" @click="showAutoFixed = !showAutoFixed"
+                                :style="{ transform: 'rotate(' + (showAutoFixed ? '0' : '180') + 'deg)' }" />
                         </v-tab>
                     </v-tabs>
                     <div class="boxTab">
                         <v-tabs-window v-model="tab">
                             <v-tabs-window-item value="manual">
-                                <v-table class="boxTabTable fontMin" fixed-header>
+                                <v-table class="boxTabTable" fixed-header>
                                     <thead>
                                         <tr>
                                             <th>稀有度</th>
@@ -85,35 +90,38 @@
                                 </v-btn>
                             </v-tabs-window-item>
                             <v-tabs-window-item value="auto">
-                                <v-table class="boxTabTable fontMin" fixed-header>
-                                    <thead>
-                                        <tr>
-                                            <th>稀有度</th>
-                                            <th>器者</th>
-                                            <th>位置</th>
-                                            <th>招集</th>
-                                            <th>时间</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(item, index) in output.filter(item => item.autoEdit.length > 0)"
-                                            @click.stop="editingAutoIndex = index">
-                                            <td
-                                                :class="{ highlightSuccess: item.rarity !== item.backup.rarity && item.rarity !== '' }">
-                                                {{ (item.rarity !== item.backup.rarity ?
-                                                    item.backup.rarity + ' → ' : '') + item.rarity }}
-                                            </td>
-                                            <td
-                                                :class="{ highlightSuccess: item.item !== item.backup.item && item.item !== '' }">
-                                                {{ (item.item !== item.backup.item ?
-                                                    item.backup.item + ' → ' : '') + item.item }}
-                                            </td>
-                                            <td>{{ item.page }} 页 {{ item.row }} 行</td>
-                                            <td>{{ item.banner }}</td>
-                                            <td>{{ item.time }}</td>
-                                        </tr>
-                                    </tbody>
-                                </v-table>
+                                <v-expand-transition>
+                                    <v-table class="boxTabTable" fixed-header v-if="showAutoFixed">
+                                        <thead>
+                                            <tr>
+                                                <th>稀有度</th>
+                                                <th>器者</th>
+                                                <th>位置</th>
+                                                <th>招集</th>
+                                                <th>时间</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(item, index) in output.filter(item => item.autoFixed.length > 0)"
+                                                @click.stop="editingAutoIndex = index">
+                                                <td
+                                                    :class="{ highlightSuccess: item.rarity !== item.backup.rarity && item.rarity !== '' }">
+                                                    {{ (item.rarity !== item.backup.rarity ?
+                                                        item.backup.rarity + ' → ' : '') + item.rarity }}
+                                                </td>
+                                                <td
+                                                    :class="{ highlightSuccess: item.item !== item.backup.item && item.item !== '' }">
+                                                    {{ (item.item !== item.backup.item ?
+                                                        item.backup.item + ' → ' : '') + item.item }}
+                                                </td>
+                                                <td>{{ item.page }} 页 {{ item.row }} 行</td>
+                                                <td>{{ item.banner }}</td>
+                                                <td>{{ item.time }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </v-table>
+
+                                </v-expand-transition>
                             </v-tabs-window-item>
                         </v-tabs-window>
                     </div>
@@ -121,9 +129,21 @@
             </v-expand-transition>
             <div class="result" style="padding-top: 22px"
                 v-if="output && output.filter(item => item.error.length > 0).length === 0">
-                <v-text-field class="fontMin" :dirty="true" label="明文输出" variant="outlined"
+                <v-text-field :dirty="true" label="明文输出" variant="outlined"
                     :value="JSON.stringify(output.map(obj => ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })))"
                     prepend-inner-icon="mdi-text-long" readonly />
+                <div style="display: flex; gap: 20px; margin-bottom: -22px">
+                    <v-btn prepend-icon="mdi-content-save-check-outline" size="x-large" @click="saveDownload()">
+                        <span style="margin-top: -2px; margin-left: -4px; letter-spacing: normal">
+                            存档下载
+                        </span>
+                    </v-btn>
+                    <v-btn style="flex: 1" prepend-icon="mdi-script-text" size="x-large">
+                        <span style="margin-top: -2px; margin-left: -4px; letter-spacing: normal">
+                            查看报告
+                        </span>
+                    </v-btn>
+                </div>
             </div>
         </div>
         <br />
@@ -137,7 +157,7 @@ import { useConfigStore } from "@/stores/config";
 const configStore = useConfigStore();
 import t from "@/utils/MatceTools.js";
 
-const input = ref("77u/Wwp7InJhcml0eSI6IueJueWHuiIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5rSb56We6LWL5Zu+IiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Ux5pe2MjPliIYifSwKeyJyYXJpdHkiOiLkvJjlvIIiLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuWkp+ebgum8jiIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMeaXtjIy5YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLnjpvpm4XpmbbnopciLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTHml7YxNuWIhiJ9LAp7InJhcml0eSI6IuaWsOeUnyIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5Y+v54ix6Iqx5p2fIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Ux5pe2MTbliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuWuneefs+WGoCIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMeaXtjE25YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLokpnljLvoja/ooosiLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTDml7Y1NOWIhiJ9LAp7InJhcml0eSI6IuaWsOeUnyIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5b+D5b2i5p6qIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2NTTliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiIiLCJpdGVtIjoi55m96YeJ57u/5b2p55O2IiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2NTTliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IiIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMOaXtjMy5YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLkupTmn7HlmagiLCJ0aW1lIjoiIn0sCnsicmFyaXR5Ijoi54m55Ye6IiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLllYbpnoUiLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTDml7YzMeWIhiJ9LAp7InJhcml0eSI6IiIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5b+D5b2i5p6qIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2MzHliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuWPr+eIseiKseadnyIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMOaXtjI45YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLlpKnmsJTljZzpqqgiLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTDml7YyOOWIhiJ9LAp7InJhcml0eSI6IuS8mOW8giIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5aSp5Lqh57CLIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2MjjliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuS6uuWktOeTtiIsInRpbWUiOiIyMDI05bm0NeaciDE35pelMjPml7Y1N+WIhiJ9LAp7InJhcml0eSI6IuaWsOeUnyIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi55+z5YagIiwidGltZSI6IjIwMjTlubQ15pyIMTfml6UyM+aXtjUw5YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLnjpvpm4XpmbbnopciLCJ0aW1lIjoiMjAyNOW5tDXmnIgxN+aXpTIz5pe2MzjliIYifSwKeyJyYXJpdHkiOiIiLCJiYW5uZXIiOiIiLCJpdGVtIjoiIiwidGltZSI6IiJ9LAp7InJhcml0eSI6IiIsImJhbm5lciI6IiIsIml0ZW0iOiIiLCJ0aW1lIjoiIn0KXQ==")
+const input = ref(null)
 const output = ref(null)
 const isBase64 = ref(false)
 const base64output = ref(null)
@@ -147,47 +167,55 @@ const editingAutoIndex = ref(null)
 const rarityDict = ref(["特出", "优异", "新生"])
 
 // 转换
-const transform = () => {
+const transform = async () => {
     output.value = null
     base64output.value = null
     const base64Pattern = /^(?:[A-Za-z0-9+\/]{4})*?(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
     isBase64.value = base64Pattern.test(input.value)
-    // Base64 解析
-    if (isBase64.value) {
+    let parseData = null
+    if (input.value) {
+        // Base64 解析
+        if (isBase64.value) {
+            try {
+                base64output.value = decodeURIComponent(atob(input.value).split('').map((c) => {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join('')).replace(/\r/g, '');
+            } catch (err) {
+                const logName = "Base64 解析出现错误！";
+                toast.error(logName + "\n" + JSON.stringify(err));
+                t.log(t.ERROR, logName, err);
+            }
+        } else {
+            base64output.value = input.value;
+        }
+        // JSON 解析
         try {
-            base64output.value = decodeURIComponent(atob(input.value).split('').map((c) => {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join('')).replace(/\r/g, '');
+            parseData = JSON.parse(base64output.value.replace(/^\uFEFF/, ""));
+            if (!(Array.isArray(parseData) && parseData.every(item => {
+                return (
+                    typeof item.rarity === 'string' &&
+                    typeof item.item === 'string' &&
+                    typeof item.banner === 'string' &&
+                    typeof item.time === 'string'
+                );
+            }))) {
+                throw new Error("请检查您的输入数据是否正确")
+            }
+            t.logs("JSON", parseData);
+            output.value = parseData
         } catch (err) {
-            const logName = "Base64 解析出现错误！";
-            toast.error(logName + "\n" + JSON.stringify(err));
-            t.log(t.ERROR, logName, err);
+            const logName = "JSON 解析出现错误！";
+            toast.error(logName + "\n" + err.message);
+            t.log(t.ERROR, logName, err.message);
+            return
         }
+    }
+
+    if (output.value) {
+        checkAndRepair()
     } else {
-        base64output.value = input.value;
+        toast.error("请检查您的输入数据是否正确");
     }
-    // JSON 解析
-    try {
-        const parseData = JSON.parse(base64output.value.replace(/^\uFEFF/, ""));
-        if (!(Array.isArray(parseData) && parseData.every(item => {
-            return (
-                typeof item.rarity === 'string' &&
-                typeof item.item === 'string' &&
-                typeof item.banner === 'string' &&
-                typeof item.time === 'string'
-            );
-        }))) {
-            throw new Error("请检查您的输入数据是否正确")
-        }
-        output.value = parseData
-        t.logs("JSON", output.value);
-    } catch (err) {
-        const logName = "JSON 解析出现错误！";
-        toast.error(logName + "\n" + err.message);
-        t.log(t.ERROR, logName, err.message);
-        return
-    }
-    checkAndRepair()
 }
 
 // 找到最相近的字符串
@@ -218,8 +246,10 @@ function findMostSimilar(str, arr) {
     return { mostSimilar, maxMatch };
 }
 
+const showAutoFixed = ref(false)
 const ignoreRarityCyan = ref(true)
 const checkAndRepair = () => {
+    showAutoFixed.value = false
     let logName = "";
     const itemDict = configStore.itemDict
     if (itemDict.length < 1) {
@@ -246,7 +276,7 @@ const checkAndRepair = () => {
     output.value.forEach((item) => {
         item.banner = item.banner.replace("／", "/") // 招集修复
         item.error = []
-        item.autoEdit = []
+        item.autoFixed = []
         // 器者判断
         if (item.item === "") {
             if (!ignoreRarityCyan.value || item.rarity !== "新生") {
@@ -257,7 +287,7 @@ const checkAndRepair = () => {
                 const mostSimilarItem = findMostSimilar(item.item, itemNameArray)
                 if (mostSimilarItem.maxMatch >= 2) {
                     t.logs("器者修改", JSON.stringify(item.item), "→", mostSimilarItem)
-                    item.autoEdit.push("item")
+                    item.autoFixed.push("item")
                     item.item = mostSimilarItem.mostSimilar
                 } else {
                     if (!ignoreRarityCyan.value || item.rarity !== "新生") {
@@ -272,7 +302,7 @@ const checkAndRepair = () => {
         if (!rarityDict.value.includes(item.rarity) || (itemFind && itemFindRarity !== item.rarity)) {
             if (itemFind) {
                 t.logs("稀有度修改", item.item + "：" + JSON.stringify(item.rarity) + " → " + itemFindRarity)
-                item.autoEdit.push("rarity")
+                item.autoFixed.push("rarity")
                 item.rarity = itemFindRarity
             } else {
                 item.error.push("item")
@@ -300,7 +330,64 @@ const checkAndRepair = () => {
         toast.success("数据修复完成！")
         tab.value = 'auto'
     }
+
+    checkFileAndMerge()
 }
+
+const inputFile = ref(null)
+const saveDownload = () => {
+    const blob = new Blob([JSON.stringify(output.value.map(obj =>
+        ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })))],
+        { type: 'application/json' }); // 创建 Blob 对象
+    const link = document.createElement('a'); // 创建下载链接
+    link.href = URL.createObjectURL(blob);
+    link.download = '存档';
+    link.click(); // 触发下载
+    URL.revokeObjectURL(link.href); // 释放 URL 对象
+}
+
+
+const checkFileAndMerge = async () => {
+    // 存档文件解析
+    let parseFileData = null
+    if (inputFile.value) {
+        try {
+            const readFile = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(JSON.parse(e.target.result));
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+            parseFileData = await readFile(inputFile.value);
+            if (!(Array.isArray(parseFileData) && parseFileData.length >= 10 && parseFileData.every(item => {
+                return (
+                    typeof item.rarity === 'string' &&
+                    typeof item.item === 'string' &&
+                    typeof item.banner === 'string' &&
+                    typeof item.time === 'string'
+                );
+            }))) {
+                throw new Error("请检查您的输入数据是否正确")
+            }
+            t.logs("存档 JSON", parseFileData);
+        } catch (err) {
+            const logName = "存档解析出现错误！";
+            toast.error(logName + "\n" + err.message);
+            t.log(t.ERROR, logName, err.message);
+            return
+        }
+        try {
+
+        } catch (err) {
+            const logName = "存档合并出现错误！";
+            toast.error(logName + "\n" + err.message);
+            t.log(t.ERROR, logName, err.message);
+            return
+        }
+    }
+}
+
+input.value = "77u/Wwp7InJhcml0eSI6IueJueWHuiIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5rSb56We6LWL5Zu+IiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Ux5pe2MjPliIYifSwKeyJyYXJpdHkiOiLkvJjlvIIiLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuWkp+ebgum8jiIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMeaXtjIy5YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLnjpvpm4XpmbbnopciLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTHml7YxNuWIhiJ9LAp7InJhcml0eSI6IuaWsOeUnyIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5Y+v54ix6Iqx5p2fIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Ux5pe2MTbliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuWuneefs+WGoCIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMeaXtjE25YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLokpnljLvoja/ooosiLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTDml7Y1NOWIhiJ9LAp7InJhcml0eSI6IuaWsOeUnyIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5b+D5b2i5p6qIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2NTTliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiIiLCJpdGVtIjoi55m96YeJ57u/5b2p55O2IiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2NTTliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IiIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMOaXtjMy5YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLkupTmn7HlmagiLCJ0aW1lIjoiIn0sCnsicmFyaXR5Ijoi54m55Ye6IiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLllYbpnoUiLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTDml7YzMeWIhiJ9LAp7InJhcml0eSI6IiIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5b+D5b2i5p6qIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2MzHliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuWPr+eIseiKseadnyIsInRpbWUiOiIyMDI05bm0NeaciDE45pelMOaXtjI45YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLlpKnmsJTljZzpqqgiLCJ0aW1lIjoiMjAyNOW5tDXmnIgxOOaXpTDml7YyOOWIhiJ9LAp7InJhcml0eSI6IuS8mOW8giIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi5aSp5Lqh57CLIiwidGltZSI6IjIwMjTlubQ15pyIMTjml6Uw5pe2MjjliIYifSwKeyJyYXJpdHkiOiLmlrDnlJ8iLCJiYW5uZXIiOiLpmZDml7Yv5LiA6KeB56We5oCdIiwiaXRlbSI6IuS6uuWktOeTtiIsInRpbWUiOiIyMDI05bm0NeaciDE35pelMjPml7Y1N+WIhiJ9LAp7InJhcml0eSI6IuaWsOeUnyIsImJhbm5lciI6IumZkOaXti/kuIDop4HnpZ7mgJ0iLCJpdGVtIjoi55+z5YagIiwidGltZSI6IjIwMjTlubQ15pyIMTfml6UyM+aXtjUw5YiGIn0sCnsicmFyaXR5Ijoi5paw55SfIiwiYmFubmVyIjoi6ZmQ5pe2L+S4gOingeelnuaAnSIsIml0ZW0iOiLnjpvpm4XpmbbnopciLCJ0aW1lIjoiMjAyNOW5tDXmnIgxN+aXpTIz5pe2MzjliIYifSwKeyJyYXJpdHkiOiIiLCJiYW5uZXIiOiIiLCJpdGVtIjoiIiwidGltZSI6IiJ9LAp7InJhcml0eSI6IiIsImJhbm5lciI6IiIsIml0ZW0iOiIiLCJ0aW1lIjoiIn0KXQ=="
 // transform()
 </script>
 

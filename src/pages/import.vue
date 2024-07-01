@@ -120,7 +120,6 @@
                                             </tr>
                                         </tbody>
                                     </v-table>
-
                                 </v-expand-transition>
                             </v-tabs-window-item>
                         </v-tabs-window>
@@ -151,6 +150,7 @@
 </template>
 
 <script setup>
+// console.clear()
 import { ref } from "vue";
 import { toast } from 'vue3-toastify';
 import { useConfigStore } from "@/stores/config";
@@ -336,8 +336,8 @@ const checkAndRepair = () => {
 
 const inputFile = ref(null)
 const saveDownload = () => {
-    const blob = new Blob([JSON.stringify(output.value.map(obj =>
-        ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })))],
+    const blob = new Blob([JSON.stringify((mergeData.value || output.value).map(obj =>
+        ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })), null, 4)],
         { type: 'application/json' }); // 创建 Blob 对象
     const link = document.createElement('a'); // 创建下载链接
     link.href = URL.createObjectURL(blob);
@@ -346,8 +346,70 @@ const saveDownload = () => {
     URL.revokeObjectURL(link.href); // 释放 URL 对象
 }
 
+// 对象数组最简化
+const clearArray = (array, ...require) => {
+    let result = array.map(({ rarity, item, banner, time }) => ({ rarity, item, banner, time }))
+    if (require.includes("addTimestamp")) {
+        result.forEach(item => { item.timestamp = new Date(item.time).getTime() })
+    }
+    return result
+}
 
+const findOverlapIndex = (array1, array2) => {
+    for (let i = 0; i < array1.length; i++) {
+        for (let j = 0; j < array2.length; j++) {
+            if (array1[i].timestamp === array2[j].timestamp) {
+                // 如果重合项位于数组的开头或末尾，比较 name 属性
+                if (i === 0 || i === array1.length - 1 || j === 0 || j === array2.length - 1) {
+                    if (array1[i].name === array2[j].name) {
+                        return { index1: i, index2: j };
+                    }
+                } else {
+                    return { index1: i, index2: j };
+                }
+            }
+        }
+    }
+    return { index1: -1, index2: -1 };  // 如果没有找到重合项，返回 -1
+}
+
+// 合并两个对象数组
+const mergeArrays = (array1, array2) => {
+    array1 = clearArray(array1, "addTimestamp")
+    array2 = clearArray(array2, "addTimestamp")
+    const indexInArray = findOverlapIndex(array1, array2);
+    t.logs("合并重合位置", indexInArray)
+    // 如果没有找到重合项，则根据时间戳大小决定拼接顺序
+    if (indexInArray.index1 === -1 && indexInArray.index2 === -1) {
+        if (array1.length === 0) {
+            return array2;
+        } else if (array2.length === 0) {
+            return array1;
+        } else if (array1[0].timestamp > array2[0].timestamp) {
+            return array1.concat(array2);
+        } else {
+            return array2.concat(array1);
+        }
+    } else {
+        // 找到重合项，根据重合位置拼接数组
+        let partOverNext = [];
+        if (indexInArray.index1 - indexInArray.index2 > 0) {
+            partOverNext = array1.slice(0, indexInArray.index1 - indexInArray.index2)
+        }
+        const partNext = array2.slice(0, indexInArray.index2);
+        const partPast = array1.slice(indexInArray.index1, array1.length);
+        let partOverPast = []
+        if ((array2.length - indexInArray.index2 - partPast.length) > 0) {
+            partOverPast = array2.slice(indexInArray.index2 + partPast.length, array2.length)
+        }
+        t.logs("合并部分拆分", [partOverNext, partNext, partPast, partOverPast])
+        return clearArray([...partOverNext, ...partNext, ...partPast, ...partOverPast]);
+    }
+}
+
+const mergeData = ref(null)
 const checkFileAndMerge = async () => {
+    mergeData.value = null
     // 存档文件解析
     let parseFileData = null
     if (inputFile.value) {
@@ -377,7 +439,9 @@ const checkFileAndMerge = async () => {
             return
         }
         try {
-
+            mergeData.value = clearArray(mergeArrays(parseFileData, output.value));
+            t.logs("合并存档", mergeData.value)
+            toast.success("存档合并完成！\n共计 " + mergeData.value.length + " 项")
         } catch (err) {
             const logName = "存档合并出现错误！";
             toast.error(logName + "\n" + err.message);
@@ -407,6 +471,7 @@ input.value = "77u/Wwp7InJhcml0eSI6IueJueWHuiIsImJhbm5lciI6IumZkOaXti/kuIDop4Hnp
 
 .main {
     min-height: calc(100vh - 104px);
+    margin-bottom: 20px;
 
     .title {
         margin: 40px 0;

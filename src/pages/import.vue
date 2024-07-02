@@ -5,7 +5,7 @@
             <v-text-field label="Base64 或明文输入" variant="outlined" v-model="input" prepend-inner-icon="mdi-content-paste"
                 clearable />
             <div style="display: flex; gap: 20px; margin-bottom: -22px">
-                <v-file-input label="存档合并上传（非必填）" variant="outlined" v-model="inputFile" accept=".json"
+                <v-file-input label="存档合并上传（非必填）" variant="outlined" v-model="inputFile" accept="application/JSON"
                     prepend-inner-icon="mdi-content-save-move-outline" :prepend-icon="null" />
                 <v-btn prepend-icon="mdi-login-variant" class="boxItem" @click="transform()" size="x-large"
                     :disabled="!input"><span
@@ -83,7 +83,7 @@
                                         return item.error.every(errorParam =>
                                             item[errorParam] !== item.backup[errorParam]) && item.item !== '' && item.rarity !== '';
                                     })" style="margin-top: 10px; width: 100%" prepend-icon="mdi-check"
-                                    @click="output = output.map(obj => ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })); checkAndRepair(); tab = 'manual'"
+                                    @click="output = clearArray(output); checkAndRepair(); tab = 'manual'"
                                     size="x-large">
                                     <span
                                         style="margin-top: -2px; margin-right: -4px; margin-left: -4px; letter-spacing: normal">提交修复</span>
@@ -129,8 +129,8 @@
             <div class="result" style="padding-top: 22px"
                 v-if="output && output.filter(item => item.error.length > 0).length === 0">
                 <v-text-field :dirty="true" label="明文输出" variant="outlined"
-                    :value="JSON.stringify(output.map(obj => ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })))"
-                    prepend-inner-icon="mdi-text-long" readonly />
+                    :value="JSON.stringify(clearArray(mergeData || output), null, 4)" prepend-inner-icon="mdi-text-long"
+                    readonly />
                 <div style="display: flex; gap: 20px; margin-bottom: -22px">
                     <v-btn prepend-icon="mdi-content-save-check-outline" size="x-large" @click="saveDownload()">
                         <span style="margin-top: -2px; margin-left: -4px; letter-spacing: normal">
@@ -165,6 +165,7 @@ const tab = ref(null)
 const editingIndex = ref(null)
 const editingAutoIndex = ref(null)
 const rarityDict = ref(["特出", "优异", "新生"])
+const bannerDict = ref(["招集", "征集", "限时"])
 
 // 转换
 const transform = async () => {
@@ -256,6 +257,17 @@ const checkAndRepair = () => {
         logName = "器者数据库为空！无法修复数据"
         toast.error(logName);
         t.log(t.ERROR, logName);
+        output.value = null
+        return
+    }
+
+    // 检查卡池类型是否一致
+    const checkTypeList = checkBannerType(output.value)
+    if (Object.values(checkTypeList).filter(type => type).length > 1) {
+        logName = "卡池类型不一致！当前包含的类型有：" + Object.keys(checkTypeList).filter((key) => checkTypeList[key] === true).join("、")
+        toast.error(logName);
+        t.log(t.ERROR, logName);
+        output.value = null
         return
     }
 
@@ -323,11 +335,11 @@ const checkAndRepair = () => {
             // item.error.push("time")
         }
     });
-    t.logs("修复后的 JSON", JSON.parse(JSON.stringify(output.value)))
+    t.logs("修复后的 JSON", clearArray(output.value))
     if (output.value.filter(item => item.error.length > 0).length > 0) {
         tab.value = 'manual'
     } else {
-        toast.success("数据修复完成！")
+        toast.success("输入数据修复完成！\n总记录合计 " + output.value.length + " 项")
         tab.value = 'auto'
     }
 
@@ -336,12 +348,14 @@ const checkAndRepair = () => {
 
 const inputFile = ref(null)
 const saveDownload = () => {
-    const blob = new Blob([JSON.stringify((mergeData.value || output.value).map(obj =>
-        ({ rarity: obj.rarity, item: obj.item, banner: obj.banner, time: obj.time })), null, 4)],
+    const blob = new Blob([JSON.stringify(clearArray(mergeData.value || output.value), null, 4)],
         { type: 'application/json' }); // 创建 Blob 对象
     const link = document.createElement('a'); // 创建下载链接
     link.href = URL.createObjectURL(blob);
-    link.download = '存档';
+    const checkTypeList = checkBannerType(mergeData.value || output.value)
+    link.download = '物华抽卡导出记录 '
+        + (Object.keys(checkTypeList).filter((key) => checkTypeList[key] === true)[0] || "未知")
+        + '渠道 ' + new Date(new Date().getTime() + 3600000 * 8).toISOString().replace(/-|:|\.\d{3}/g, '').replace('T', '-').replace('Z', '') + new Date().getMilliseconds();
     link.click(); // 触发下载
     URL.revokeObjectURL(link.href); // 释放 URL 对象
 }
@@ -373,10 +387,36 @@ const findOverlapIndex = (array1, array2) => {
     return { index1: -1, index2: -1 };  // 如果没有找到重合项，返回 -1
 }
 
+const checkBannerType = (array1, array2) => {
+    let typeList = bannerDict.value.reduce((obj, key) => {
+        obj[key] = false;
+        return obj;
+    }, {});
+    if (!array2) {
+        array2 = []
+    }
+    [array1, array2].forEach(array => {
+        array.forEach(obj => {
+            const type = obj.banner.split('/')[0];
+            Object.keys(typeList).forEach(checkType => {
+                if (type === checkType) {
+                    typeList[checkType] = true;
+                }
+            })
+        });
+    });
+    return typeList;
+}
+
 // 合并两个对象数组
 const mergeArrays = (array1, array2) => {
     array1 = clearArray(array1, "addTimestamp")
     array2 = clearArray(array2, "addTimestamp")
+    // 检查卡池类型是否一致
+    const checkTypeList = checkBannerType(array1, array2)
+    if (Object.values(checkTypeList).filter(type => type).length > 1) {
+        throw new Error("卡池类型不一致！当前包含的类型有：" + Object.keys(checkTypeList).filter((key) => checkTypeList[key] === true).join("、"))
+    }
     const indexInArray = findOverlapIndex(array1, array2);
     t.logs("合并重合位置", indexInArray)
     // 如果没有找到重合项，则根据时间戳大小决定拼接顺序
@@ -441,7 +481,7 @@ const checkFileAndMerge = async () => {
         try {
             mergeData.value = clearArray(mergeArrays(parseFileData, output.value));
             t.logs("合并存档", mergeData.value)
-            toast.success("存档合并完成！\n共计 " + mergeData.value.length + " 项")
+            toast.success("输入数据与上传的存档合并完成！\n总记录合计 " + mergeData.value.length + " 项")
         } catch (err) {
             const logName = "存档合并出现错误！";
             toast.error(logName + "\n" + err.message);
@@ -471,7 +511,7 @@ input.value = "77u/Wwp7InJhcml0eSI6IueJueWHuiIsImJhbm5lciI6IumZkOaXti/kuIDop4Hnp
 
 .main {
     min-height: calc(100vh - 104px);
-    margin-bottom: 20px;
+    padding-bottom: 20px;
 
     .title {
         margin: 40px 0;
